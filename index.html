@@ -163,8 +163,17 @@
         }
 
         function filterCategory(cat) {
+            // Remove active from all buttons
             document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            
+            // Find and activate the clicked button
+            const buttons = document.querySelectorAll('.category-btn');
+            for (let btn of buttons) {
+                if (btn.getAttribute('onclick').includes("'" + cat + "'")) {
+                    btn.classList.add('active');
+                    break;
+                }
+            }
 
             let filtered = allVideos;
             if (cat !== 'all') {
@@ -175,13 +184,13 @@
 
         function checkForNewEpisodes() {
             const status = document.getElementById('status');
-            status.textContent = "✅ Using saved episodes from On The Level Podcast.";
+            status.textContent = "✅ Using latest saved episodes from On The Level Podcast.";
         }
 
         window.onload = () => {
             allVideos = hardcodedVideos;
             renderVideos(allVideos);
-            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes! Use the category buttons.`;
+            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes! Tap the category buttons.`;
         };
     </script>
 </body>
