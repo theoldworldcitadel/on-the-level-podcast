@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>On The Level Podcast</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        body { font-family: 'Georgia', serif; background: #1a1a1a; color: #e0d4b3; margin: 0; padding: 10px; }
+        header { text-align: center; padding: 15px; background: #2c2c2c; border-bottom: 4px solid #b38b5e; }
+        .logo-video { width: 100%; max-width: 620px; border-radius: 12px; box-shadow: 0 0 25px rgba(212, 175, 55, 0.7); margin-bottom: 10px; }
+        h1 { color: #d4af37; margin: 10px 0 5px; font-size: 1.8em; }
+        .controls { margin: 15px 0; text-align: center; }
+        .category-btn { padding: 12px 16px; margin: 6px 4px; background: #3c2c1e; color: #d4af37; border: 2px solid #b38b5e; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1em; min-width: 140px; }
+        .category-btn.active { background: #d4af37; color: #1a1a1a; }
+        #videoGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .video-card { background: #2c2c2c; border: 2px solid #b38b5e; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.3s; }
+        .video-card:hover { transform: scale(1.03); box-shadow: 0 0 15px #d4af37; }
+        .video-card img { width: 100%; height: auto; display: block; }
+        .video-card h3 { margin: 12px 12px 6px; font-size: 1.1em; line-height: 1.3; }
+        .video-card p { margin: 0 12px 12px; font-size: 0.9em; color: #ccc; }
+        button.watch-btn { margin: 10px 12px; padding: 14px 20px; background: #b38b5e; color: #1a1a1a; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: calc(100% - 24px); font-size: 1.05em; }
+        #status { text-align:center; margin:15px; color:#d4af37; font-weight:bold; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; border-top: 2px solid #b38b5e; font-size: 0.95em; color: #b38b5e; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <header>
+        <video class="logo-video" autoplay loop muted playsinline>
+            <source src="logo-reel.mp4" type="video/mp4">
+            <source src="1780f912-0e24-405e-8d0d-f0533f4990e0.mp4" type="video/mp4">
+        </video>
+        <h1>On The Level Podcast</h1>
+        <p>Next-Gen Masonic Viewer - All Episodes in One Place</p>
+    </header>
+
+    <div class="controls">
+        <div>
+            <button class="category-btn active" onclick="filterCategory('all')">All Episodes</button>
+            <button class="category-btn" onclick="filterCategory('historical')">Historical Masonic</button>
+            <button class="category-btn" onclick="filterCategory('interview')">Masonic Interviews</button>
+            <button class="category-btn" onclick="filterCategory('discussion')">Discussions</button>
+        </div>
+    </div>
+
+    <div id="status"></div>
+    <div id="videoGrid"></div>
+
+    <footer>
+        This App is created by Worshipful Brother Sam Earl Sedghi.<br>
+        Co-Founder of the On the Level Podcast.<br>
+        For On the Level Podcast only.<br>
+        <strong>May the Light Always Prevail.</strong>
+    </footer>
+
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+
+        let allVideos = [];
+
+        const hardcodedVideos = [
+            { id: "4zzZBo6qa1g", title: "Episode 29: Tradition, Duty, Faith, Hope & Charity", desc: "Core Masonic virtues", thumb: "https://i.ytimg.com/vi/4zzZBo6qa1g/hqdefault.jpg", date: "May 31, 2026", category: "discussion" },
+            { id: "TNDcEpzmAIs", title: "Episode 28: Widows Son", desc: "Widows Son legend", thumb: "https://i.ytimg.com/vi/TNDcEpzmAIs/hqdefault.jpg", date: "May 18, 2026", category: "interview" },
+            { id: "f7rVNjRGsWQ", title: "Episode 27: Gale Vyncke IMSAP", desc: "Interview with Gale Vyncke", thumb: "https://i.ytimg.com/vi/f7rVNjRGsWQ/hqdefault.jpg", date: "Apr 20, 2026", category: "interview" },
+            { id: "ey88dPuxbxk", title: "Episode 26: Grand Senior Warden Illinois", desc: "Grand Senior Warden interview", thumb: "https://i.ytimg.com/vi/ey88dPuxbxk/hqdefault.jpg", date: "Mar 15, 2026", category: "interview" },
+            { id: "EueXAnC4g7g", title: "Episode 25: Grand Line Rainbow Girls Illinois", desc: "Conversation with Grand Line", thumb: "https://i.ytimg.com/vi/EueXAnC4g7g/hqdefault.jpg", date: "Mar 1, 2026", category: "interview" },
+            { id: "uBtFU_og8hc", title: "Episode 24: King Solomon's Lodge No.5", desc: "King Solomon's Lodge", thumb: "https://i.ytimg.com/vi/uBtFU_og8hc/hqdefault.jpg", date: "Feb 20, 2026", category: "interview" },
+            { id: "eOmTOh7aX7c", title: "Episode 23: Grand Master Illinois", desc: "Grand Master interview", thumb: "https://i.ytimg.com/vi/eOmTOh7aX7c/hqdefault.jpg", date: "Feb 1, 2026", category: "interview" },
+            { id: "_OvxtB3g2x8", title: "Episode 22: Empires & The Craft", desc: "Empires and Craft", thumb: "https://i.ytimg.com/vi/_OvxtB3g2x8/hqdefault.jpg", date: "Jan 20, 2026", category: "historical" },
+            { id: "7fwoPEBV1wk", title: "Episode 21: Angelo Deserio - Senior Grand Warden", desc: "Conversation with Angelo Deserio", thumb: "https://i.ytimg.com/vi/7fwoPEBV1wk/hqdefault.jpg", date: "Jan 5, 2026", category: "interview" },
+            { id: "J4SYSXtqLfo", title: "Episode 20: Brotherhood with Patrick Grubbs", desc: "Junior Grand Warden interview", thumb: "https://i.ytimg.com/vi/J4SYSXtqLfo/hqdefault.jpg", date: "Dec 20, 2025", category: "interview" },
+            { id: "Rwk590XeXvU", title: "Episode 19: Happy New Year", desc: "Fraternal greetings", thumb: "https://i.ytimg.com/vi/Rwk590XeXvU/hqdefault.jpg", date: "Dec 10, 2025", category: "discussion" },
+            { id: "F7__Vh8BUVE", title: "Episode 18: Knights Templar Series 4", desc: "Knights Templar", thumb: "https://i.ytimg.com/vi/F7__Vh8BUVE/hqdefault.jpg", date: "Dec 1, 2025", category: "historical" },
+            { id: "eVVKNe6-hDg", title: "Episode 17: Job's Daughters", desc: "Job's Daughters interview", thumb: "https://i.ytimg.com/vi/eVVKNe6-hDg/hqdefault.jpg", date: "Nov 20, 2025", category: "interview" },
+            { id: "BhnW7oqPGFM", title: "Episode 16: Deep Bonds & Templar", desc: "Brotherhood & Templar", thumb: "https://i.ytimg.com/vi/BhnW7oqPGFM/hqdefault.jpg", date: "Nov 5, 2025", category: "historical" },
+            { id: "yEmUYTTocA8", title: "Episode 15: Knights Templar Myth Busting", desc: "Templar Myth Busting", thumb: "https://i.ytimg.com/vi/yEmUYTTocA8/hqdefault.jpg", date: "Oct 20, 2025", category: "historical" },
+            { id: "p97kwxg1_Rc", title: "Episode 14: Grandmaster Illinois", desc: "Grandmaster interview", thumb: "https://i.ytimg.com/vi/p97kwxg1_Rc/hqdefault.jpg", date: "Oct 5, 2025", category: "interview" },
+            { id: "o04GVDkRQQE", title: "Episode 13: Craft Lodges Illinois", desc: "Craft Lodges", thumb: "https://i.ytimg.com/vi/o04GVDkRQQE/hqdefault.jpg", date: "Sep 20, 2025", category: "interview" },
+            { id: "B95K2BfDprI", title: "Episode 12: Knights Templar Part 3", desc: "Knights Templar", thumb: "https://i.ytimg.com/vi/B95K2BfDprI/hqdefault.jpg", date: "Sep 5, 2025", category: "historical" },
+            { id: "dSlW99IZu2I", title: "Episode 11: Knights Templar Part 2", desc: "Knights Templar", thumb: "https://i.ytimg.com/vi/dSlW99IZu2I/hqdefault.jpg", date: "Aug 20, 2025", category: "historical" },
+            { id: "Ono3J7Kewl0", title: "Episode 10: Illinois Masonic Academic Bowl", desc: "Masonic Academic Bowl", thumb: "https://i.ytimg.com/vi/Ono3J7Kewl0/hqdefault.jpg", date: "Aug 5, 2025", category: "interview" },
+            { id: "8T-mtL9XuL0", title: "Episode 9: Knights Templar", desc: "Knights Templar", thumb: "https://i.ytimg.com/vi/8T-mtL9XuL0/hqdefault.jpg", date: "Jul 20, 2025", category: "historical" },
+            { id: "Vqz1nuBSFFw", title: "Episode 8: David Lynch Grand Master", desc: "Grand Master David Lynch interview", thumb: "https://i.ytimg.com/vi/Vqz1nuBSFFw/hqdefault.jpg", date: "Jul 5, 2025", category: "interview" },
+            { id: "2f1LE1dBYOQ", title: "Episode 7: Deputy Grand Master Knights Templar", desc: "Deputy Grand Master interview", thumb: "https://i.ytimg.com/vi/2f1LE1dBYOQ/hqdefault.jpg", date: "Jun 20, 2025", category: "interview" },
+            { id: "LuLUMxDOC40", title: "Episode 6: Job's Daughters Illinois", desc: "Job's Daughters interview", thumb: "https://i.ytimg.com/vi/LuLUMxDOC40/hqdefault.jpg", date: "Jun 5, 2025", category: "interview" },
+            { id: "d90JKugjeyk", title: "Episode 5", desc: "Episode 5", thumb: "https://i.ytimg.com/vi/d90JKugjeyk/hqdefault.jpg", date: "May 20, 2025", category: "discussion" },
+            { id: "b-4wNIXRhg8", title: "Episode 4: Knights Templars & DeMolay", desc: "Knights Templar & DeMolay", thumb: "https://i.ytimg.com/vi/b-4wNIXRhg8/hqdefault.jpg", date: "May 5, 2025", category: "interview" },
+            { id: "R2wgiBw0AcE", title: "Episode 3: Cryptic Council Grand Masters", desc: "Round table with Cryptic Masters", thumb: "https://i.ytimg.com/vi/R2wgiBw0AcE/hqdefault.jpg", date: "Apr 20, 2025", category: "interview" },
+            { id: "PRwEjs6P0g8", title: "Episode 2: Indiana Grand Officers", desc: "Indiana Grand Master & Officers", thumb: "https://i.ytimg.com/vi/PRwEjs6P0g8/hqdefault.jpg", date: "Apr 5, 2025", category: "interview" },
+            { id: "BWdRw8Y_6FM", title: "Episode 1: York Rite Grand Masters", desc: "York Rite Grand Masters", thumb: "https://i.ytimg.com/vi/BWdRw8Y_6FM/hqdefault.jpg", date: "Mar 20, 2025", category: "interview" }
+        ];
+
+        function renderVideos(videos) {
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = '';
+            videos.forEach(video => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <img src="${video.thumb}" alt="${video.title}">
+                    <h3>${video.title}</h3>
+                    <p>${video.date} - ${video.desc}</p>
+                    <button class="watch-btn" onclick="event.stopImmediatePropagation(); window.open('https://www.youtube.com/watch?v=${video.id}', '_blank')">▶ Watch on YouTube</button>
+                `;
+                card.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank');
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            let filtered = allVideos;
+            if (cat !== 'all') filtered = allVideos.filter(v => v.category === cat);
+            renderVideos(filtered);
+        }
+
+        window.onload = () => {
+            allVideos = hardcodedVideos;
+            renderVideos(allVideos);
+            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes! Use category buttons.`;
+        };
+    </script>
+</body>
+</html>
