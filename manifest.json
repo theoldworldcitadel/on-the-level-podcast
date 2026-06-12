@@ -1,8 +1,8 @@
 {
   "name": "On The Level Podcast",
   "short_name": "On The Level",
-  "description": "Official Next-Gen Masonic Viewer for On The Level Podcast",
-  "start_url": "OnTheLevelPodcast.html",
+  "description": "Next-Gen Masonic Viewer for On The Level Podcast",
+  "start_url": "/on-the-level-podcast/",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#d4af37",
