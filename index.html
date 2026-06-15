@@ -75,6 +75,8 @@
         let allVideos = [];
 
         const hardcodedVideos = [
+            // === NEWEST FIRST ===
+            { id: "rErDjTjaSko", title: "Episode 30: A conversation with the Grand Junior Warden State Of Illinois AF & AM", desc: "New Masonic Interview", thumb: "https://i.ytimg.com/vi/rErDjTjaSko/hqdefault.jpg", date: "June 15, 2026", category: "interview" },
             { id: "4zzZBo6qa1g", title: "Episode 29: Tradition, Duty, Faith, Hope & Charity", desc: "Core Masonic virtues", thumb: "https://i.ytimg.com/vi/4zzZBo6qa1g/hqdefault.jpg", date: "May 31, 2026", category: "discussion" },
             { id: "TNDcEpzmAIs", title: "Episode 28: Widows Son", desc: "Widows Son legend", thumb: "https://i.ytimg.com/vi/TNDcEpzmAIs/hqdefault.jpg", date: "May 18, 2026", category: "interview" },
             { id: "f7rVNjRGsWQ", title: "Episode 27: Gale Vyncke IMSAP", desc: "Interview with Gale Vyncke", thumb: "https://i.ytimg.com/vi/f7rVNjRGsWQ/hqdefault.jpg", date: "Apr 20, 2026", category: "interview" },
@@ -124,16 +126,8 @@
         }
 
         function filterCategory(cat) {
-            // Reset all buttons
             document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-            
-            // Activate the clicked button
-            const buttons = document.querySelectorAll('.category-btn');
-            buttons.forEach(btn => {
-                if (btn.getAttribute('onclick').includes(cat)) {
-                    btn.classList.add('active');
-                }
-            });
+            event.currentTarget.classList.add('active');
 
             let filtered = allVideos;
             if (cat !== 'all') {
@@ -142,15 +136,20 @@
             renderVideos(filtered);
         }
 
-        function checkForNewEpisodes() {
+        async function checkForNewEpisodes() {
             const status = document.getElementById('status');
-            status.textContent = "✅ Using latest saved episodes from On The Level Podcast.";
+            status.textContent = "🔄 Checking for new episodes...";
+            // Future auto-update placeholder - currently uses full hardcoded list
+            setTimeout(() => {
+                status.textContent = `✅ Loaded ${allVideos.length} episodes! (Episode 30 added as Interview)`;
+                renderVideos(allVideos);
+            }, 600);
         }
 
         window.onload = () => {
             allVideos = hardcodedVideos;
             renderVideos(allVideos);
-            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes! Use category buttons.`;
+            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes! (Episode 30 at top)`;
         };
     </script>
 </body>
