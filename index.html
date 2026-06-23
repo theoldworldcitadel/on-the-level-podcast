@@ -75,12 +75,10 @@
         let allVideos = [];
 
         const hardcodedVideos = [
-            // === EPISODE 31 (NEWEST) ===
+            // Episode 31 (Myth Busting)
             { id: "n7X2ei7A3e4", title: "Episode 31: Myth Busting Freemasonry Conspiracies", desc: "On The Level Podcast - Myth Busting Freemasonry Conspiracies", thumb: "https://i.ytimg.com/vi/n7X2ei7A3e4/hqdefault.jpg", date: "June 2026", category: "discussion" },
-            
             // Episode 30
             { id: "rErDjTjaSko", title: "Episode 30: A conversation with the Grand Junior Warden State Of Illinois AF & AM", desc: "New Masonic Interview", thumb: "https://i.ytimg.com/vi/rErDjTjaSko/hqdefault.jpg", date: "June 15, 2026", category: "interview" },
-            
             { id: "4zzZBo6qa1g", title: "Episode 29: Tradition, Duty, Faith, Hope & Charity", desc: "Core Masonic virtues", thumb: "https://i.ytimg.com/vi/4zzZBo6qa1g/hqdefault.jpg", date: "May 31, 2026", category: "discussion" },
             { id: "TNDcEpzmAIs", title: "Episode 28: Widows Son", desc: "Widows Son legend", thumb: "https://i.ytimg.com/vi/TNDcEpzmAIs/hqdefault.jpg", date: "May 18, 2026", category: "interview" },
             { id: "f7rVNjRGsWQ", title: "Episode 27: Gale Vyncke IMSAP", desc: "Interview with Gale Vyncke", thumb: "https://i.ytimg.com/vi/f7rVNjRGsWQ/hqdefault.jpg", date: "Apr 20, 2026", category: "interview" },
@@ -142,33 +140,42 @@
 
         async function checkForNewEpisodes() {
             const status = document.getElementById('status');
-            status.textContent = "🔄 Checking for newer episodes...";
+            status.textContent = "🔄 Checking only for On The Level Podcast episodes...";
 
             try {
                 const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=UCbHhPzTPm9wJKozo7--HQKA');
                 const data = await response.json();
 
                 if (data.items && data.items.length > 0) {
-                    const newEpisodes = data.items.map(item => {
-                        const videoId = item.link.split('v=')[1] || item.guid.split(':').pop();
-                        return {
-                            id: videoId,
-                            title: item.title,
-                            desc: (item.description || "").substring(0, 80) + "...",
-                            thumb: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                            date: new Date(item.pubDate).toLocaleDateString(),
-                            category: "interview"
-                        };
-                    });
+                    const newEpisodes = data.items
+                        .filter(item => {
+                            const title = item.title.toLowerCase();
+                            // STRICT FILTER - Only On The Level Podcast content
+                            return title.includes("on the level podcast") || 
+                                   title.includes("episode 3") || 
+                                   title.includes("episode 31") ||
+                                   title.includes("myth busting");
+                        })
+                        .map(item => {
+                            const videoId = item.link.split('v=')[1] || item.guid.split(':').pop();
+                            return {
+                                id: videoId,
+                                title: item.title,
+                                desc: (item.description || "").substring(0, 80) + "...",
+                                thumb: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                                date: new Date(item.pubDate).toLocaleDateString(),
+                                category: "discussion"
+                            };
+                        });
 
                     const existingIds = new Set(allVideos.map(v => v.id));
                     const freshNew = newEpisodes.filter(v => !existingIds.has(v.id));
 
                     if (freshNew.length > 0) {
                         allVideos = [...freshNew, ...allVideos];
-                        status.textContent = `✅ Found ${freshNew.length} new episode(s)!`;
+                        status.textContent = `✅ Added ${freshNew.length} new On The Level episode(s)!`;
                     } else {
-                        status.textContent = "✅ No newer episodes found. All latest are loaded.";
+                        status.textContent = "✅ No new On The Level Podcast episodes found.";
                     }
                     renderVideos(allVideos);
                 } else {
