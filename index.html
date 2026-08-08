@@ -75,10 +75,15 @@
         let allVideos = [];
 
         const hardcodedVideos = [
-            // Episode 31 (Myth Busting)
-            { id: "n7X2ei7A3e4", title: "Episode 31: Myth Busting Freemasonry Conspiracies", desc: "On The Level Podcast - Myth Busting Freemasonry Conspiracies", thumb: "https://i.ytimg.com/vi/n7X2ei7A3e4/hqdefault.jpg", date: "June 2026", category: "discussion" },
+            // === EPISODE 32 (NEWEST) ===
+            { id: "N_3hf3M7n6M", title: "Episode 32: Further Light", desc: "Regular & Irregular Freemasonry since 1877 - Setting the Record Straight", thumb: "https://i.ytimg.com/vi/N_3hf3M7n6M/hqdefault.jpg", date: "August 7, 2026", category: "historical" },
+            
+            // Episode 31
+            { id: "n7X2ei7A3e4", title: "Episode 31: Myth Busting Freemasonry Conspiracies", desc: "Myth Busting Freemasonry Conspiracies", thumb: "https://i.ytimg.com/vi/n7X2ei7A3e4/hqdefault.jpg", date: "June 2026", category: "discussion" },
+            
             // Episode 30
             { id: "rErDjTjaSko", title: "Episode 30: A conversation with the Grand Junior Warden State Of Illinois AF & AM", desc: "New Masonic Interview", thumb: "https://i.ytimg.com/vi/rErDjTjaSko/hqdefault.jpg", date: "June 15, 2026", category: "interview" },
+            
             { id: "4zzZBo6qa1g", title: "Episode 29: Tradition, Duty, Faith, Hope & Charity", desc: "Core Masonic virtues", thumb: "https://i.ytimg.com/vi/4zzZBo6qa1g/hqdefault.jpg", date: "May 31, 2026", category: "discussion" },
             { id: "TNDcEpzmAIs", title: "Episode 28: Widows Son", desc: "Widows Son legend", thumb: "https://i.ytimg.com/vi/TNDcEpzmAIs/hqdefault.jpg", date: "May 18, 2026", category: "interview" },
             { id: "f7rVNjRGsWQ", title: "Episode 27: Gale Vyncke IMSAP", desc: "Interview with Gale Vyncke", thumb: "https://i.ytimg.com/vi/f7rVNjRGsWQ/hqdefault.jpg", date: "Apr 20, 2026", category: "interview" },
@@ -150,10 +155,9 @@
                     const newEpisodes = data.items
                         .filter(item => {
                             const title = item.title.toLowerCase();
-                            // STRICT FILTER - Only On The Level Podcast content
                             return title.includes("on the level podcast") || 
-                                   title.includes("episode 3") || 
-                                   title.includes("episode 31") ||
+                                   title.includes("episode 32") ||
+                                   title.includes("further light") ||
                                    title.includes("myth busting");
                         })
                         .map(item => {
@@ -164,7 +168,7 @@
                                 desc: (item.description || "").substring(0, 80) + "...",
                                 thumb: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
                                 date: new Date(item.pubDate).toLocaleDateString(),
-                                category: "discussion"
+                                category: "historical"
                             };
                         });
 
@@ -190,7 +194,7 @@
         window.onload = () => {
             allVideos = hardcodedVideos;
             renderVideos(allVideos);
-            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes (Episode 31 at top)`;
+            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes (Episode 32 at top)`;
         };
     </script>
 </body>
