@@ -5,37 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a1a1a">
     <title>On The Level Podcast</title>
-    
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon.png" type="image/png">
     <link rel="apple-touch-icon" href="icon.png">
-
     <style>
         body { font-family: 'Georgia', serif; background: #1a1a1a; color: #e0d4b3; margin: 0; padding: 10px; }
         header { text-align: center; padding: 15px; background: #2c2c2c; border-bottom: 4px solid #b38b5e; }
         .logo-video { width: 100%; max-width: 620px; border-radius: 12px; box-shadow: 0 0 25px rgba(212, 175, 55, 0.7); margin-bottom: 10px; }
         h1 { color: #d4af37; margin: 10px 0 5px; font-size: 1.8em; }
         .controls { margin: 15px 0; text-align: center; }
-        .category-btn { 
-            padding: 12px 16px; margin: 6px 4px; background: #3c2c1e; color: #d4af37; 
-            border: 2px solid #b38b5e; border-radius: 8px; cursor: pointer; font-weight: bold; 
-            font-size: 1em; min-width: 140px; 
+        .category-btn {
+            padding: 12px 16px; margin: 6px 4px; background: #3c2c1e; color: #d4af37;
+            border: 2px solid #b38b5e; border-radius: 8px; cursor: pointer; font-weight: bold;
+            font-size: 1em; min-width: 140px;
         }
         .category-btn.active { background: #d4af37; color: #1a1a1a; }
         #videoGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-        .video-card { 
-            background: #2c2c2c; border: 2px solid #b38b5e; border-radius: 12px; 
-            overflow: hidden; cursor: pointer; transition: all 0.3s; 
+        .video-card {
+            background: #2c2c2c; border: 2px solid #b38b5e; border-radius: 12px;
+            overflow: hidden; cursor: pointer; transition: all 0.3s;
         }
         .video-card:hover { transform: scale(1.03); box-shadow: 0 0 15px #d4af37; }
         .video-card img { width: 100%; height: auto; display: block; }
         .video-card h3 { margin: 12px 12px 6px; font-size: 1.1em; line-height: 1.3; }
         .video-card p { margin: 0 12px 12px; font-size: 0.9em; color: #ccc; }
-        button.watch-btn { 
-            margin: 10px 12px; padding: 14px 20px; background: #b38b5e; color: #1a1a1a; 
-            border: none; border-radius: 6px; cursor: pointer; font-weight: bold; 
-            width: calc(100% - 24px); font-size: 1.05em; 
+        button.watch-btn {
+            margin: 10px 12px; padding: 14px 20px; background: #b38b5e; color: #1a1a1a;
+            border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+            width: calc(100% - 24px); font-size: 1.05em;
         }
         #status { text-align:center; margin:15px; color:#d4af37; font-weight:bold; }
         footer { text-align: center; margin-top: 40px; padding: 20px; border-top: 2px solid #b38b5e; font-size: 0.95em; color: #b38b5e; line-height: 1.5; }
@@ -73,28 +70,25 @@
 
     <script>
         let allVideos = [];
+        const CHANNEL_ID = "UCmzoBHTbelmMzFjHf_uT65A";
 
         const hardcodedVideos = [
-            // === EPISODE 32 (NEWEST) ===
+            { id: "UPSrcirxVbg", title: "Episode 34: Grand Master Of Indiana F & AM", desc: "Interview with the Most Worshipful Grand Master of Indiana USA Free & Accepted Masons", thumb: "https://i.ytimg.com/vi/UPSrcirxVbg/hqdefault.jpg", date: "September 21, 2026", category: "interview" },
+            { id: "djTR82y_Az4", title: "Episode 33: The Prelude", desc: "The Prelude to the Further Light historical series", thumb: "https://i.ytimg.com/vi/djTR82y_Az4/hqdefault.jpg", date: "September 6, 2026", category: "historical" },
             { id: "N_3hf3M7n6M", title: "Episode 32: Further Light", desc: "Regular & Irregular Freemasonry since 1877 - Setting the Record Straight", thumb: "https://i.ytimg.com/vi/N_3hf3M7n6M/hqdefault.jpg", date: "August 7, 2026", category: "historical" },
-            
-            // Episode 31
-            { id: "n7X2ei7A3e4", title: "Episode 31: Myth Busting Freemasonry Conspiracies", desc: "Myth Busting Freemasonry Conspiracies", thumb: "https://i.ytimg.com/vi/n7X2ei7A3e4/hqdefault.jpg", date: "June 2026", category: "discussion" },
-            
-            // Episode 30
-            { id: "rErDjTjaSko", title: "Episode 30: A conversation with the Grand Junior Warden State Of Illinois AF & AM", desc: "New Masonic Interview", thumb: "https://i.ytimg.com/vi/rErDjTjaSko/hqdefault.jpg", date: "June 15, 2026", category: "interview" },
-            
+            { id: "n7X2ei7A3e4", title: "Episode 31: Myth Busting Freemasonry Conspiracies", desc: "Myth Busting Freemasonry Conspiracies", thumb: "https://i.ytimg.com/vi/n7X2ei7A3e4/hqdefault.jpg", date: "June 23, 2026", category: "discussion" },
+            { id: "rErDjTjaSko", title: "Episode 30: Grand Junior Warden of Illinois AF & AM", desc: "Conversation with the Grand Junior Warden of Illinois", thumb: "https://i.ytimg.com/vi/rErDjTjaSko/hqdefault.jpg", date: "June 15, 2026", category: "interview" },
             { id: "4zzZBo6qa1g", title: "Episode 29: Tradition, Duty, Faith, Hope & Charity", desc: "Core Masonic virtues", thumb: "https://i.ytimg.com/vi/4zzZBo6qa1g/hqdefault.jpg", date: "May 31, 2026", category: "discussion" },
-            { id: "TNDcEpzmAIs", title: "Episode 28: Widows Son", desc: "Widows Son legend", thumb: "https://i.ytimg.com/vi/TNDcEpzmAIs/hqdefault.jpg", date: "May 18, 2026", category: "interview" },
-            { id: "f7rVNjRGsWQ", title: "Episode 27: Gale Vyncke IMSAP", desc: "Interview with Gale Vyncke", thumb: "https://i.ytimg.com/vi/f7rVNjRGsWQ/hqdefault.jpg", date: "Apr 20, 2026", category: "interview" },
+            { id: "TNDcEpzmAIs", title: "Episode 28: Widows Son", desc: "Conversation with Widow Son's Legend, Joe Stormin Norman", thumb: "https://i.ytimg.com/vi/TNDcEpzmAIs/hqdefault.jpg", date: "May 18, 2026", category: "interview" },
+            { id: "f7rVNjRGsWQ", title: "Episode 27: Gale Vyncke IMSAP", desc: "Interview with Gale Vyncke", thumb: "https://i.ytimg.com/vi/f7rVNjRGsWQ/hqdefault.jpg", date: "Apr 9, 2026", category: "interview" },
             { id: "ey88dPuxbxk", title: "Episode 26: Grand Senior Warden Illinois", desc: "Grand Senior Warden interview", thumb: "https://i.ytimg.com/vi/ey88dPuxbxk/hqdefault.jpg", date: "Mar 15, 2026", category: "interview" },
             { id: "EueXAnC4g7g", title: "Episode 25: Grand Line Rainbow Girls Illinois", desc: "Conversation with Grand Line", thumb: "https://i.ytimg.com/vi/EueXAnC4g7g/hqdefault.jpg", date: "Mar 1, 2026", category: "interview" },
-            { id: "uBtFU_og8hc", title: "Episode 24: King Solomon's Lodge No.5", desc: "King Solomon's Lodge", thumb: "https://i.ytimg.com/vi/uBtFU_og8hc/hqdefault.jpg", date: "Feb 20, 2026", category: "interview" },
+            { id: "uBtFU_og8hc", title: "Episode 24: King Solomon's Lodge No.5", desc: "King Solomon's Lodge Tombstone AZ", thumb: "https://i.ytimg.com/vi/uBtFU_og8hc/hqdefault.jpg", date: "Feb 20, 2026", category: "interview" },
             { id: "eOmTOh7aX7c", title: "Episode 23: Grand Master Illinois", desc: "Grand Master interview", thumb: "https://i.ytimg.com/vi/eOmTOh7aX7c/hqdefault.jpg", date: "Feb 1, 2026", category: "interview" },
             { id: "_OvxtB3g2x8", title: "Episode 22: Empires & The Craft", desc: "Empires and Craft", thumb: "https://i.ytimg.com/vi/_OvxtB3g2x8/hqdefault.jpg", date: "Jan 20, 2026", category: "historical" },
-            { id: "7fwoPEBV1wk", title: "Episode 21: Angelo Deserio - Senior Grand Warden", desc: "Conversation with Angelo Deserio", thumb: "https://i.ytimg.com/vi/7fwoPEBV1wk/hqdefault.jpg", date: "Jan 5, 2026", category: "interview" },
-            { id: "J4SYSXtqLfo", title: "Episode 20: Brotherhood with Patrick Grubbs", desc: "Junior Grand Warden interview", thumb: "https://i.ytimg.com/vi/J4SYSXtqLfo/hqdefault.jpg", date: "Dec 20, 2025", category: "interview" },
-            { id: "Rwk590XeXvU", title: "Episode 19: Happy New Year", desc: "Fraternal greetings", thumb: "https://i.ytimg.com/vi/Rwk590XeXvU/hqdefault.jpg", date: "Dec 10, 2025", category: "discussion" },
+            { id: "7fwoPEBV1wk", title: "Episode 21: Angelo Deserio - Senior Grand Warden", desc: "Conversation with Angelo Deserio", thumb: "https://i.ytimg.com/vi/7fwoPEBV1wk/hqdefault.jpg", date: "Jan 16, 2026", category: "interview" },
+            { id: "J4SYSXtqLfo", title: "Episode 20: Brotherhood with Patrick Grubbs", desc: "Junior Grand Warden interview", thumb: "https://i.ytimg.com/vi/J4SYSXtqLfo/hqdefault.jpg", date: "Jan 4, 2026", category: "interview" },
+            { id: "Rwk590XeXvU", title: "Episode 19: Happy New Year", desc: "Fraternal greetings", thumb: "https://i.ytimg.com/vi/Rwk590XeXvU/hqdefault.jpg", date: "Dec 31, 2025", category: "discussion" },
             { id: "F7__Vh8BUVE", title: "Episode 18: Knights Templar Series 4", desc: "Knights Templar", thumb: "https://i.ytimg.com/vi/F7__Vh8BUVE/hqdefault.jpg", date: "Dec 1, 2025", category: "historical" },
             { id: "eVVKNe6-hDg", title: "Episode 17: Job's Daughters", desc: "Job's Daughters interview", thumb: "https://i.ytimg.com/vi/eVVKNe6-hDg/hqdefault.jpg", date: "Nov 20, 2025", category: "interview" },
             { id: "BhnW7oqPGFM", title: "Episode 16: Deep Bonds & Templar", desc: "Brotherhood & Templar", thumb: "https://i.ytimg.com/vi/BhnW7oqPGFM/hqdefault.jpg", date: "Nov 5, 2025", category: "historical" },
@@ -127,7 +121,7 @@
                     <p>${video.date} - ${video.desc}</p>
                     <button class="watch-btn" onclick="event.stopImmediatePropagation(); window.open('https://www.youtube.com/watch?v=${video.id}', '_blank')">▶ Watch on YouTube</button>
                 `;
-                card.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank');
+                card.onclick = () => window.open('https://www.youtube.com/watch?v=' + video.id, '_blank');
                 grid.appendChild(card);
             });
         }
@@ -135,66 +129,56 @@
         function filterCategory(cat) {
             document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
             event.currentTarget.classList.add('active');
-
             let filtered = allVideos;
-            if (cat !== 'all') {
-                filtered = allVideos.filter(v => v.category === cat);
-            }
+            if (cat !== 'all') filtered = allVideos.filter(v => v.category === cat);
             renderVideos(filtered);
         }
 
         async function checkForNewEpisodes() {
             const status = document.getElementById('status');
-            status.textContent = "🔄 Checking only for On The Level Podcast episodes...";
-
+            status.textContent = "🔄 Checking On The Level Podcast channel only...";
             try {
-                const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=UCbHhPzTPm9wJKozo7--HQKA');
+                const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://www.youtube.com/feeds/videos.xml?channel_id=' + CHANNEL_ID));
                 const data = await response.json();
-
                 if (data.items && data.items.length > 0) {
                     const newEpisodes = data.items
                         .filter(item => {
-                            const title = item.title.toLowerCase();
-                            return title.includes("on the level podcast") || 
-                                   title.includes("episode 32") ||
-                                   title.includes("further light") ||
-                                   title.includes("myth busting");
+                            const title = (item.title || '').toLowerCase();
+                            return title.includes('on the level podcast') || title.includes('episode');
                         })
                         .map(item => {
-                            const videoId = item.link.split('v=')[1] || item.guid.split(':').pop();
+                            const videoId = (item.link && item.link.split('v=')[1]) || (item.guid && item.guid.split(':').pop());
                             return {
                                 id: videoId,
                                 title: item.title,
-                                desc: (item.description || "").substring(0, 80) + "...",
-                                thumb: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                                date: new Date(item.pubDate).toLocaleDateString(),
-                                category: "historical"
+                                desc: ((item.description || '').substring(0, 90) + '...'),
+                                thumb: item.thumbnail || ('https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg'),
+                                date: item.pubDate ? new Date(item.pubDate).toLocaleDateString() : '',
+                                category: 'interview'
                             };
                         });
-
                     const existingIds = new Set(allVideos.map(v => v.id));
-                    const freshNew = newEpisodes.filter(v => !existingIds.has(v.id));
-
+                    const freshNew = newEpisodes.filter(v => v.id && !existingIds.has(v.id));
                     if (freshNew.length > 0) {
                         allVideos = [...freshNew, ...allVideos];
-                        status.textContent = `✅ Added ${freshNew.length} new On The Level episode(s)!`;
+                        status.textContent = '✅ Added ' + freshNew.length + ' new On The Level episode(s)!';
                     } else {
-                        status.textContent = "✅ No new On The Level Podcast episodes found.";
+                        status.textContent = '✅ No newer On The Level episodes found. Latest list loaded.';
                     }
                     renderVideos(allVideos);
                 } else {
-                    status.textContent = "✅ Using saved episodes.";
+                    status.textContent = '✅ Using saved On The Level episodes.';
                 }
             } catch (e) {
                 console.error(e);
-                status.textContent = "✅ Check complete. Using saved list.";
+                status.textContent = '✅ Check complete. Using saved On The Level list.';
             }
         }
 
         window.onload = () => {
             allVideos = hardcodedVideos;
             renderVideos(allVideos);
-            document.getElementById('status').textContent = `✅ Loaded ${allVideos.length} episodes (Episode 32 at top)`;
+            document.getElementById('status').textContent = '✅ Loaded ' + allVideos.length + ' episodes (Episode 34 & 33 at top)';
         };
     </script>
 </body>
