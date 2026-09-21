@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a1a1a">
+    <meta http-equiv="Cache-Control" content="no-cache">
     <title>On The Level Podcast</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon.png" type="image/png">
@@ -34,6 +35,10 @@
             border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
             width: calc(100% - 24px); font-size: 1.05em;
         }
+        #checkBtn {
+            margin-top: 10px; padding: 12px 18px; background: #2c2c2c; color: #d4af37;
+            border: 2px solid #b38b5e; border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
         #status { text-align:center; margin:15px; color:#d4af37; font-weight:bold; }
         footer { text-align: center; margin-top: 40px; padding: 20px; border-top: 2px solid #b38b5e; font-size: 0.95em; color: #b38b5e; line-height: 1.5; }
     </style>
@@ -55,7 +60,7 @@
             <button class="category-btn" onclick="filterCategory('interview')">Masonic Interviews</button>
             <button class="category-btn" onclick="filterCategory('discussion')">Discussions</button>
         </div>
-        <button onclick="checkForNewEpisodes()">🔄 Check for New Episodes</button>
+        <button id="checkBtn" onclick="checkForNewEpisodes(false)">Check for New Episodes</button>
     </div>
 
     <div id="status"></div>
@@ -70,7 +75,10 @@
 
     <script>
         let allVideos = [];
+        let activeCategory = "all";
+        let checking = false;
         const CHANNEL_ID = "UCmzoBHTbelmMzFjHf_uT65A";
+        const STORAGE_KEY = "otl_extra_episodes_v1";
 
         const hardcodedVideos = [
             { id: "UPSrcirxVbg", title: "Episode 34: Grand Master Of Indiana F & AM", desc: "Interview with the Most Worshipful Grand Master of Indiana USA Free & Accepted Masons", thumb: "https://i.ytimg.com/vi/UPSrcirxVbg/hqdefault.jpg", date: "September 21, 2026", category: "interview" },
@@ -109,76 +117,208 @@
             { id: "BWdRw8Y_6FM", title: "Episode 1: York Rite Grand Masters", desc: "York Rite Grand Masters", thumb: "https://i.ytimg.com/vi/BWdRw8Y_6FM/hqdefault.jpg", date: "Mar 20, 2025", category: "interview" }
         ];
 
+        function decodeHtml(s) {
+            const el = document.createElement("textarea");
+            el.innerHTML = s || "";
+            return el.value;
+        }
+
+        function esc(s) {
+            const d = document.createElement("div");
+            d.textContent = s || "";
+            return d.innerHTML;
+        }
+
+        function guessCategory(title, desc) {
+            const t = ((title || "") + " " + (desc || "")).toLowerCase();
+            if (t.indexOf("templar") !== -1 || t.indexOf("further light") !== -1 || t.indexOf("prelude") !== -1 || t.indexOf("empire") !== -1) return "historical";
+            if (t.indexOf("myth bust") !== -1 || t.indexOf("conspiracy") !== -1 || t.indexOf("happy new year") !== -1 || t.indexOf("tradition, duty") !== -1) return "discussion";
+            if (t.indexOf("interview") !== -1 || t.indexOf("conversation") !== -1 || t.indexOf("grand master") !== -1 || t.indexOf("warden") !== -1 || t.indexOf("demolay") !== -1 || t.indexOf("job") !== -1 || t.indexOf("widow") !== -1 || t.indexOf("rainbow") !== -1 || t.indexOf("lodge") !== -1) return "interview";
+            return "interview";
+        }
+
+        function loadSavedExtras() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function persistExtras(list) {
+            const hardcodedIds = new Set(hardcodedVideos.map(function (v) { return v.id; }));
+            const extras = list.filter(function (v) { return v && v.id && !hardcodedIds.has(v.id); });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(extras));
+        }
+
+        function mergeVideos(incoming) {
+            const extras = incoming || [];
+            const seen = new Set();
+            const out = [];
+            extras.concat(hardcodedVideos).forEach(function (v) {
+                if (!v || !v.id || seen.has(v.id)) return;
+                seen.add(v.id);
+                out.push(v);
+            });
+            return out;
+        }
+
+        function visibleVideos() {
+            if (activeCategory === "all") return allVideos;
+            return allVideos.filter(function (v) { return v.category === activeCategory; });
+        }
+
         function renderVideos(videos) {
-            const grid = document.getElementById('videoGrid');
-            grid.innerHTML = '';
-            videos.forEach(video => {
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
-                    <img src="${video.thumb}" alt="${video.title}">
-                    <h3>${video.title}</h3>
-                    <p>${video.date} - ${video.desc}</p>
-                    <button class="watch-btn" onclick="event.stopImmediatePropagation(); window.open('https://www.youtube.com/watch?v=${video.id}', '_blank')">▶ Watch on YouTube</button>
-                `;
-                card.onclick = () => window.open('https://www.youtube.com/watch?v=' + video.id, '_blank');
+            const grid = document.getElementById("videoGrid");
+            grid.innerHTML = "";
+            videos.forEach(function (video) {
+                const card = document.createElement("div");
+                card.className = "video-card";
+                card.innerHTML =
+                    '<img src="' + video.thumb + '" alt="">' +
+                    "<h3>" + esc(video.title) + "</h3>" +
+                    "<p>" + esc(video.date) + " - " + esc(video.desc) + "</p>" +
+                    '<button class="watch-btn" onclick="event.stopImmediatePropagation(); window.open(\'https://www.youtube.com/watch?v=' + video.id + '\', \'_blank\')">Watch on YouTube</button>';
+                card.onclick = function () {
+                    window.open("https://www.youtube.com/watch?v=" + video.id, "_blank");
+                };
                 grid.appendChild(card);
             });
         }
 
         function filterCategory(cat) {
-            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            let filtered = allVideos;
-            if (cat !== 'all') filtered = allVideos.filter(v => v.category === cat);
-            renderVideos(filtered);
+            document.querySelectorAll(".category-btn").forEach(function (btn) { btn.classList.remove("active"); });
+            if (event && event.currentTarget) event.currentTarget.classList.add("active");
+            activeCategory = cat;
+            renderVideos(visibleVideos());
         }
 
-        async function checkForNewEpisodes() {
-            const status = document.getElementById('status');
-            status.textContent = "🔄 Checking On The Level Podcast channel only...";
-            try {
-                const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://www.youtube.com/feeds/videos.xml?channel_id=' + CHANNEL_ID));
-                const data = await response.json();
-                if (data.items && data.items.length > 0) {
-                    const newEpisodes = data.items
-                        .filter(item => {
-                            const title = (item.title || '').toLowerCase();
-                            return title.includes('on the level podcast') || title.includes('episode');
-                        })
-                        .map(item => {
-                            const videoId = (item.link && item.link.split('v=')[1]) || (item.guid && item.guid.split(':').pop());
-                            return {
-                                id: videoId,
-                                title: item.title,
-                                desc: ((item.description || '').substring(0, 90) + '...'),
-                                thumb: item.thumbnail || ('https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg'),
-                                date: item.pubDate ? new Date(item.pubDate).toLocaleDateString() : '',
-                                category: 'interview'
-                            };
-                        });
-                    const existingIds = new Set(allVideos.map(v => v.id));
-                    const freshNew = newEpisodes.filter(v => v.id && !existingIds.has(v.id));
-                    if (freshNew.length > 0) {
-                        allVideos = [...freshNew, ...allVideos];
-                        status.textContent = '✅ Added ' + freshNew.length + ' new On The Level episode(s)!';
-                    } else {
-                        status.textContent = '✅ No newer On The Level episodes found. Latest list loaded.';
-                    }
-                    renderVideos(allVideos);
-                } else {
-                    status.textContent = '✅ Using saved On The Level episodes.';
+        function extractVideoId(item) {
+            if (item.link && item.link.indexOf("v=") !== -1) return item.link.split("v=")[1].split("&")[0];
+            if (item.guid && item.guid.indexOf(":") !== -1) return item.guid.split(":").pop();
+            if (item.url && item.url.indexOf("v=") !== -1) return item.url.split("v=")[1].split("&")[0];
+            if (item.id && String(item.id).indexOf(":") !== -1) return String(item.id).split(":").pop();
+            return item.id || "";
+        }
+
+        function mapChannelItem(item) {
+            const videoId = extractVideoId(item);
+            const title = decodeHtml(item.title || "On The Level Podcast");
+            const rawDesc = decodeHtml(item.description || item.content || "");
+            const desc = rawDesc.replace(/\s+/g, " ").substring(0, 90);
+            return {
+                id: videoId,
+                title: title,
+                desc: desc ? desc + "..." : "On The Level Podcast",
+                thumb: item.thumbnail || ("https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg"),
+                date: item.pubDate ? new Date(item.pubDate).toLocaleDateString() : "",
+                category: guessCategory(title, rawDesc)
+            };
+        }
+
+        function parseAtom(xmlText) {
+            const doc = new DOMParser().parseFromString(xmlText, "text/xml");
+            const entries = doc.getElementsByTagName("entry");
+            const out = [];
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
+                function textOf(name) {
+                    const els = entry.getElementsByTagName(name);
+                    return els.length ? (els[0].textContent || "") : "";
                 }
-            } catch (e) {
-                console.error(e);
-                status.textContent = '✅ Check complete. Using saved On The Level list.';
+                const id = textOf("yt:videoId") || textOf("id").split(":").pop();
+                const title = decodeHtml(textOf("title"));
+                const desc = decodeHtml(textOf("media:description") || textOf("summary"));
+                const published = textOf("published") || textOf("updated");
+                let thumb = "";
+                const thumbs = entry.getElementsByTagName("media:thumbnail");
+                if (thumbs.length) thumb = thumbs[0].getAttribute("url") || "";
+                if (!id) continue;
+                out.push({
+                    id: id,
+                    title: title || "On The Level Podcast",
+                    desc: desc ? desc.replace(/\s+/g, " ").substring(0, 90) + "..." : "On The Level Podcast",
+                    thumb: thumb || ("https://i.ytimg.com/vi/" + id + "/hqdefault.jpg"),
+                    date: published ? new Date(published).toLocaleDateString() : "",
+                    category: guessCategory(title, desc)
+                });
+            }
+            return out;
+        }
+
+        async function fetchChannelItems() {
+            const feed = "https://www.youtube.com/feeds/videos.xml?channel_id=" + CHANNEL_ID;
+            try {
+                const rssUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feed);
+                const response = await fetch(rssUrl);
+                const data = await response.json();
+                if (data.items && data.items.length) {
+                    return data.items.map(mapChannelItem).filter(function (v) { return !!v.id; });
+                }
+            } catch (e) {}
+            try {
+                const proxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(feed);
+                const response = await fetch(proxy);
+                const xmlText = await response.text();
+                return parseAtom(xmlText);
+            } catch (e2) {
+                return [];
             }
         }
 
-        window.onload = () => {
-            allVideos = hardcodedVideos;
-            renderVideos(allVideos);
-            document.getElementById('status').textContent = '✅ Loaded ' + allVideos.length + ' episodes (Episode 34 & 33 at top)';
+        async function checkForNewEpisodes(isAuto) {
+            if (checking) return;
+            checking = true;
+            const status = document.getElementById("status");
+            if (!isAuto) status.textContent = "Checking On The Level Podcast channel...";
+            try {
+                const channelVideos = await fetchChannelItems();
+                const existingIds = new Set(allVideos.map(function (v) { return v.id; }));
+                const freshNew = channelVideos.filter(function (v) { return v.id && !existingIds.has(v.id); });
+                if (freshNew.length > 0) {
+                    allVideos = mergeVideos(freshNew.concat(allVideos));
+                    persistExtras(allVideos);
+                    renderVideos(visibleVideos());
+                    status.textContent = "Added " + freshNew.length + " new On The Level episode(s) automatically.";
+                } else if (!isAuto) {
+                    status.textContent = "No newer On The Level episodes found. Latest list loaded.";
+                } else {
+                    status.textContent = "Auto-updated from YouTube. " + allVideos.length + " episodes. New episodes appear here when posted.";
+                }
+            } catch (e) {
+                console.error(e);
+                if (!isAuto) status.textContent = "Could not reach YouTube right now. Showing saved On The Level episodes.";
+            }
+            checking = false;
+        }
+
+        function startAutoUpdate() {
+            allVideos = mergeVideos(loadSavedExtras().concat(hardcodedVideos));
+            renderVideos(visibleVideos());
+            document.getElementById("status").textContent = "Loaded " + allVideos.length + " episodes. Checking YouTube for new ones...";
+            checkForNewEpisodes(true);
+            setInterval(function () {
+                if (!document.hidden) checkForNewEpisodes(true);
+            }, 10 * 60 * 1000);
+            document.addEventListener("visibilitychange", function () {
+                if (!document.hidden) checkForNewEpisodes(true);
+            });
+        }
+
+        window.onload = function () {
+            startAutoUpdate();
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("./sw.js?v=3").then(function (reg) {
+                    if (reg.update) reg.update();
+                });
+                navigator.serviceWorker.addEventListener("controllerchange", function () {
+                    if (!window.__otlReloaded) {
+                        window.__otlReloaded = true;
+                        location.reload();
+                    }
+                });
+            }
         };
     </script>
 </body>
