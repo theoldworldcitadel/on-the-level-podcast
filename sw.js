@@ -1,4 +1,4 @@
-const CACHE_NAME = "on-the-level-podcast-v4";
+const CACHE_NAME = "on-the-level-podcast-v5";
 const STATIC_ASSETS = [
   "./manifest.json",
   "./icon.png",
